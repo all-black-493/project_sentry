@@ -9,12 +9,41 @@ services:
       RABBITMQ_DEFAULT_PASS: password
 
   red_agent:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
       - rabbitmq
+      - mock_target
+    container_name: red_agent_service
     environment:
       RABBITMQ_URL: "amqp://user:password@rabbitmq:5672/"
-      TARGET_URL: "http://target-service:5000/api"
+      TARGET_URL: "http://mock_target:5000/api"  # ← corrected target hostname
       GEMINI_API_KEY: "${GEMINI_API_KEY}"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    networks:
+      - rednet
     ports:
       - "8000:8000"
+
+  mock_target:
+    image: tiangolo/uvicorn-gunicorn-fastapi:python3.11
+    container_name: mock_target
+    environment:
+      MODULE_NAME: mock_service
+      VARIABLE_NAME: app
+    networks:
+      - rednet
+
+networks:
+  rednet:
+    driver: bridge
