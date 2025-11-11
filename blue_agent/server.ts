@@ -2,6 +2,7 @@ import express from "express";
 import { createClient } from "redis";
 import dotenv from "dotenv";
 import { register, signatureMatches, anomalyDetections, responseDuration} from "./metrics"
+import logger from "./logger"
 
 dotenv.config();
 
@@ -46,7 +47,16 @@ async function startServer() {
 
     app.post("/detect", async(req, res)=>{
         const start = Date.now()
-        const {type} = req.body
+        const {ip, promptSnippet, anomalyScore, type} = req.body
+
+        logger.info({
+            event: "detection",
+            type,
+            ip,
+            promptSnippet,
+            anomalyScore,
+            timestamp: new Date().toISOString()
+        })        
 
         if(type === "signature"){
             signatureMatches.inc();
