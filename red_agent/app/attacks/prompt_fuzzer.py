@@ -13,14 +13,13 @@ router = APIRouter()
 class FuzzRequest(BaseModel):
     prompt_template: str = Field(..., description="Original prompt to mutate")
     target_endpoint: str = Field(..., description="URL of the model inference API")
-    api_key: str = Field(..., description="Bearer toekn for the target endpoint")
+    api_key: str = Field(..., description="Bearer token for the target endpoint")
 
 
 class FuzzResponse(BaseModel):
     fuzzed_prompt: str
     success: bool
     details: dict
-
 
 class PromptFuzzer:
     def __init___(self, template: str):
