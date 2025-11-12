@@ -5,8 +5,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
+RUN apt-get -y update; apt-get -y install curl
+
 # keep the 'app' directory inside the container as /app/app
-COPY app/ ./app/
+COPY . .
 
 EXPOSE 8000
 
