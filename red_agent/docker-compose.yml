@@ -1,4 +1,40 @@
 services:
+
+  feedback_loop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: feedback_loop
+    environment:
+      ELASTICSEARCH_URL: "http://elasticsearch:9200"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - rednet
+    command: ["/bin/sh", "-c", "until curl -s http://elasticsearch:9200 > /dev/null; do echo 'Waiting for Elasticsearch...'; sleep 5; done; python3 feedback_loop.py"]
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - network.host=0.0.0.0
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - bootstrap.memory_lock=true
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    networks:
+      - rednet
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -15,6 +51,7 @@ services:
     depends_on:
       - rabbitmq
       - mock_target
+      - elasticsearch
     container_name: red_agent_service
     environment:
       RABBITMQ_URL: "amqp://user:password@rabbitmq:5672/"
@@ -47,3 +84,6 @@ services:
 networks:
   rednet:
     driver: bridge
+
+volumes:
+  esdata:

@@ -48,6 +48,11 @@ async function startServer() {
     app.post("/detect", async(req, res)=>{
         const start = Date.now()
         const {ip, promptSnippet, anomalyScore, type} = req.body
+        if(type === "signature"){
+            signatureMatches.inc();
+        } else if( type === "anomaly"){
+            anomalyDetections.inc();
+        }
 
         logger.info({
             event: "detection",
@@ -57,12 +62,6 @@ async function startServer() {
             anomalyScore,
             timestamp: new Date().toISOString()
         })        
-
-        if(type === "signature"){
-            signatureMatches.inc();
-        } else if( type === "anomaly"){
-            anomalyDetections.inc();
-        }
 
         // Perform remediation logic
 
