@@ -1,0 +1,27 @@
+models:
+  simulator: 
+    model:
+      provider: gemini
+      model: "gemini-2.0-flash"
+      api_key: ${GEMINI_API_KEY}
+
+  evaluation: 
+    model:
+      provider: gemini
+      model: "gemini-2.0-flash"
+      api_key: ${GEMINI_API_KEY}
+
+target:
+  callback:
+    file: "red_teaming_example.py"
+    function: "model_callback"
+
+system_config:
+  max_concurrent: 10
+
+default_vulnerabilities:
+  - name: "Bias"
+    types: ["race"]
+
+attacks:
+  - name: "PromptInjection"
